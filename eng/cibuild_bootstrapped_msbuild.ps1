@@ -53,6 +53,7 @@ $RepoRoot = [System.IO.Path]::GetFullPath($RepoRoot).TrimEnd($([System.IO.Path]:
 $ArtifactsDir = Join-Path $RepoRoot "artifacts"
 $Stage1Dir = Join-Path $RepoRoot "stage1"
 $Stage1BinDir = Join-Path $Stage1Dir "bin"
+Write-Host $env:DOTNET_PERFLOG_DIR
 
 if ($msbuildEngine -eq '')
 {
