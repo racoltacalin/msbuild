@@ -119,8 +119,7 @@ function Build-Repo() {
 
   # Do not set this property to true explicitly, since that would override values set in projects.
   $suppressPartialNgenOptimization = if (!$applyOptimizationData) { "/p:EnableNgenOptimization=false" } else { "" }
-  Write-Host "This is DOTNET_PERFLOGDIR"
-  Write-Host $env:DOTNET_PERFLOG_DIR
+
   MSBuild $toolsetBuildProj `
     $bl `
     /p:Configuration=$configuration `
@@ -165,6 +164,9 @@ try {
   . (Join-Path $PSScriptRoot "configure-toolset.ps1")
 
   $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
+
+  Write-Host "This is DOTNET_PERFLOGDIR"
+  Write-Host $env:DOTNET_PERFLOG_DIR
 
   Build-Repo
 
