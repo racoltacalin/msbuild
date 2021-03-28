@@ -48,7 +48,7 @@ namespace Microsoft.Build.Logging
         // version 13:
         //   - don't log Message where it can be recovered
         //   - log arguments for LazyFormattedBuildEventArgs
-        internal const int FileFormatVersion = 12;
+        internal const int FileFormatVersion = 13;
 
         private Stream stream;
         private BinaryWriter binaryWriter;
