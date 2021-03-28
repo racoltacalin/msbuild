@@ -275,7 +275,8 @@ namespace Microsoft.Build.Logging
             var e = new ProjectImportedEventArgs(
                 fields.LineNumber,
                 fields.ColumnNumber,
-                fields.Message);
+                fields.Message,
+                fields.Arguments);
 
             SetCommonFields(e, fields);
 
@@ -295,10 +296,22 @@ namespace Microsoft.Build.Logging
             var targetFile = ReadOptionalString();
             var targetName = ReadOptionalString();
             var parentTarget = ReadOptionalString();
+
+            string condition = null;
+            string evaluatedCondition = null;
+            bool originallySucceeded = false;
+            if (fileFormatVersion >= 13)
+            {
+                condition = ReadOptionalString();
+                evaluatedCondition = ReadOptionalString();
+                originallySucceeded = ReadBoolean();
+            }
+
             var buildReason = (TargetBuiltReason)ReadInt32();
 
             var e = new TargetSkippedEventArgs(
-                fields.Message);
+                fields.Message,
+                fields.Arguments);
 
             SetCommonFields(e, fields);
 
@@ -307,6 +320,9 @@ namespace Microsoft.Build.Logging
             e.TargetName = targetName;
             e.ParentTarget = parentTarget;
             e.BuildReason = buildReason;
+            e.Condition = condition;
+            e.EvaluatedCondition = evaluatedCondition;
+            e.OriginallySucceeded = originallySucceeded;
 
             return e;
         }
@@ -562,7 +578,8 @@ namespace Microsoft.Build.Logging
                 fields.Message,
                 fields.HelpKeyword,
                 fields.SenderName,
-                fields.Timestamp);
+                fields.Timestamp,
+                fields.Arguments);
             e.BuildEventContext = fields.BuildEventContext;
             e.ProjectFile = fields.ProjectFile;
             return e;
@@ -584,7 +601,8 @@ namespace Microsoft.Build.Logging
                 fields.Message,
                 fields.HelpKeyword,
                 fields.SenderName,
-                fields.Timestamp);
+                fields.Timestamp,
+                fields.Arguments);
             e.BuildEventContext = fields.BuildEventContext;
             e.ProjectFile = fields.ProjectFile;
             return e;
@@ -607,7 +625,8 @@ namespace Microsoft.Build.Logging
                 fields.HelpKeyword,
                 fields.SenderName,
                 importance,
-                fields.Timestamp);
+                fields.Timestamp,
+                fields.Arguments);
             e.BuildEventContext = fields.BuildEventContext;
             e.ProjectFile = fields.ProjectFile;
             return e;
@@ -667,7 +686,8 @@ namespace Microsoft.Build.Logging
                 fields.Message,
                 fields.HelpKeyword,
                 fields.SenderName,
-                fields.Timestamp);
+                fields.Timestamp,
+                fields.Arguments);
             e.BuildEventContext = fields.BuildEventContext;
             e.ProjectFile = fields.ProjectFile;
             return e;
@@ -844,6 +864,18 @@ namespace Microsoft.Build.Logging
             if ((flags & BuildEventArgsFieldFlags.EndColumnNumber) != 0)
             {
                 result.EndColumnNumber = ReadInt32();
+            }
+
+            if ((flags & BuildEventArgsFieldFlags.Arguments) != 0)
+            {
+                int count = ReadInt32();
+                object[] arguments = new object[count];
+                for (int i = 0; i < count; i++)
+                {
+                    arguments[i] = ReadDeduplicatedString();
+                }
+
+                result.Arguments = arguments;
             }
 
             return result;

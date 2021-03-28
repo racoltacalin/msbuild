@@ -40,6 +40,7 @@ namespace Microsoft.Build.BackEnd
         /// </summary>
         static ItemGroupLoggingHelper()
         {
+            BuildEventArgs.ResourceStringFormatter = ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword;
             TaskParameterEventArgs.MessageGetter = GetTaskParameterText;
             TaskParameterEventArgs.DictionaryFactory = ArrayDictionary<string, string>.Create;
         }

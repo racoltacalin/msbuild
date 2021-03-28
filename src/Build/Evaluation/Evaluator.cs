@@ -1410,7 +1410,7 @@ namespace Microsoft.Build.Evaluation
         {
             using (_evaluationProfiler.TrackElement(importElement))
             {
-                List<ProjectRootElement> importedProjectRootElements = ExpandAndLoadImports(directoryOfImportingFile, importElement, out var sdkResult);
+                IEnumerable<ProjectRootElement> importedProjectRootElements = ExpandAndLoadImports(directoryOfImportingFile, importElement, out var sdkResult);
 
                 foreach (ProjectRootElement importedProjectRootElement in importedProjectRootElements)
                 {
@@ -1511,7 +1511,7 @@ namespace Microsoft.Build.Evaluation
         /// in those additional paths if the default fails.
         /// </remarks>
         /// </summary>
-        private List<ProjectRootElement> ExpandAndLoadImports(string directoryOfImportingFile, ProjectImportElement importElement, out SdkResult sdkResult)
+        private IEnumerable<ProjectRootElement> ExpandAndLoadImports(string directoryOfImportingFile, ProjectImportElement importElement, out SdkResult sdkResult)
         {
             var fallbackSearchPathMatch = _data.Toolset.GetProjectImportSearchPaths(importElement.Project);
             sdkResult = null;
@@ -1520,8 +1520,7 @@ namespace Microsoft.Build.Evaluation
             // so, use the Import path
             if (fallbackSearchPathMatch.Equals(ProjectImportPathMatch.None))
             {
-                List<ProjectRootElement> projects;
-                ExpandAndLoadImportsFromUnescapedImportExpressionConditioned(directoryOfImportingFile, importElement, out projects, out sdkResult);
+                ExpandAndLoadImportsFromUnescapedImportExpressionConditioned(directoryOfImportingFile, importElement, out var projects, out sdkResult);
                 return projects;
             }
 
@@ -1614,8 +1613,7 @@ namespace Microsoft.Build.Evaluation
                 var newExpandedImportPath = importElement.Project.Replace(extensionPropertyRefAsString, extensionPathExpanded, StringComparison.OrdinalIgnoreCase);
                 _evaluationLoggingContext.LogComment(MessageImportance.Low, "TryingExtensionsPath", newExpandedImportPath, extensionPathExpanded);
 
-                List<ProjectRootElement> projects;
-                var result = ExpandAndLoadImportsFromUnescapedImportExpression(directoryOfImportingFile, importElement, newExpandedImportPath, false, out projects);
+                var result = ExpandAndLoadImportsFromUnescapedImportExpression(directoryOfImportingFile, importElement, newExpandedImportPath, false, out var projects);
 
                 if (result == LoadImportsResult.ProjectsImported)
                 {
@@ -1663,6 +1661,15 @@ namespace Microsoft.Build.Evaluation
             return allProjects;
         }
 
+        private static readonly string ProjectImportSkippedFalseCondition = ResourceUtilities.GetResourceString("ProjectImportSkippedFalseCondition");
+        private static readonly string CouldNotResolveSdk = ResourceUtilities.GetResourceString("CouldNotResolveSdk");
+        private static readonly string ProjectImportSkippedExpressionEvaluatedToEmpty = ResourceUtilities.GetResourceString("ProjectImportSkippedExpressionEvaluatedToEmpty");
+        private static readonly string ProjectImportSkippedNoMatches = ResourceUtilities.GetResourceString("ProjectImportSkippedNoMatches");
+        private static readonly string ProjectImported = ResourceUtilities.GetResourceString("ProjectImported");
+        private static readonly string ProjectImportSkippedMissingFile = ResourceUtilities.GetResourceString("ProjectImportSkippedMissingFile");
+        private static readonly string ProjectImportSkippedEmptyFile = ResourceUtilities.GetResourceString("ProjectImportSkippedEmptyFile");
+        private static readonly string ProjectImportSkippedInvalidFile = ResourceUtilities.GetResourceString("ProjectImportSkippedInvalidFile");
+
         /// <summary>
         /// Load and parse the specified project import, which may have wildcards,
         /// into one or more ProjectRootElements, if it's Condition evaluates to true
@@ -1672,7 +1679,7 @@ namespace Microsoft.Build.Evaluation
         private void ExpandAndLoadImportsFromUnescapedImportExpressionConditioned(
             string directoryOfImportingFile,
             ProjectImportElement importElement,
-            out List<ProjectRootElement> projects,
+            out IEnumerable<ProjectRootElement> projects,
             out SdkResult sdkResult,
             bool throwOnFileNotExistsError = true)
         {
@@ -1689,7 +1696,7 @@ namespace Microsoft.Build.Evaluation
                     ProjectImportedEventArgs eventArgs = new ProjectImportedEventArgs(
                         importElement.Location.Line,
                         importElement.Location.Column,
-                        ResourceUtilities.GetResourceString("ProjectImportSkippedFalseCondition"),
+                        ProjectImportSkippedFalseCondition,
                         importElement.Project,
                         importElement.ContainingProject.FullPath,
                         importElement.Location.Line,
@@ -1704,7 +1711,8 @@ namespace Microsoft.Build.Evaluation
 
                     _evaluationLoggingContext.LogBuildEvent(eventArgs);
                 }
-                projects = new List<ProjectRootElement>();
+
+                projects = Array.Empty<ProjectRootElement>();
                 return;
             }
 
@@ -1782,7 +1790,7 @@ namespace Microsoft.Build.Evaluation
                         ProjectImportedEventArgs eventArgs = new ProjectImportedEventArgs(
                             importElement.Location.Line,
                             importElement.Location.Column,
-                            ResourceUtilities.GetResourceString("CouldNotResolveSdk"),
+                            CouldNotResolveSdk,
                             sdkReference.ToString())
                         {
                             BuildEventContext = _evaluationLoggingContext.BuildEventContext,
@@ -1794,7 +1802,7 @@ namespace Microsoft.Build.Evaluation
 
                         _evaluationLoggingContext.LogBuildEvent(eventArgs);
 
-                        projects = new List<ProjectRootElement>();
+                        projects = Array.Empty<ProjectRootElement>();
 
                         return;
                     }
@@ -1802,11 +1810,8 @@ namespace Microsoft.Build.Evaluation
                     ProjectErrorUtilities.ThrowInvalidProject(importElement.SdkLocation, "CouldNotResolveSdk", sdkReference.ToString());
                 }
 
-                if (sdkResult.Path == null)
-                {
-                    projects = new List<ProjectRootElement>();
-                }
-                else
+                var list = new List<ProjectRootElement>();
+                if (sdkResult.Path != null)
                 {
                     ExpandAndLoadImportsFromUnescapedImportExpression(directoryOfImportingFile, importElement, Path.Combine(sdkResult.Path, project),
                         throwOnFileNotExistsError, out projects);
@@ -1818,7 +1823,7 @@ namespace Microsoft.Build.Evaluation
                             ExpandAndLoadImportsFromUnescapedImportExpression(directoryOfImportingFile, importElement, Path.Combine(additionalPath, project),
                                 throwOnFileNotExistsError, out var additionalProjects);
 
-                            projects.AddRange(additionalProjects);
+                            list.AddRange(additionalProjects);
                         }
                     }
                 }
@@ -1828,8 +1833,10 @@ namespace Microsoft.Build.Evaluation
                 {
                     //  Inserting at the beginning will mean that the properties or items from the SdkResult will be evaluated before
                     //  any projects from paths returned by the SDK Resolver.
-                    projects.Insert(0, CreateProjectForSdkResult(sdkResult));
+                    list.Insert(0, CreateProjectForSdkResult(sdkResult));
                 }
+
+                projects = list;
             }
             else
             {
@@ -1936,10 +1943,14 @@ namespace Microsoft.Build.Evaluation
         /// Caches the parsed import into the provided collection, so future
         /// requests can be satisfied without re-parsing it.
         /// </summary>
-        private LoadImportsResult ExpandAndLoadImportsFromUnescapedImportExpression(string directoryOfImportingFile, ProjectImportElement importElement, string unescapedExpression,
-                                            bool throwOnFileNotExistsError, out List<ProjectRootElement> imports)
+        private LoadImportsResult ExpandAndLoadImportsFromUnescapedImportExpression(
+            string directoryOfImportingFile,
+            ProjectImportElement importElement,
+            string unescapedExpression,
+            bool throwOnFileNotExistsError,
+            out IEnumerable<ProjectRootElement> resultImports)
         {
-            imports = new List<ProjectRootElement>();
+            var importsList = new List<ProjectRootElement>();
 
             string importExpressionEscaped = _expander.ExpandIntoStringLeaveEscaped(unescapedExpression, ExpanderOptions.ExpandProperties, importElement.ProjectLocation);
             ElementLocation importLocationInProject = importElement.Location;
@@ -1952,7 +1963,7 @@ namespace Microsoft.Build.Evaluation
                     ProjectImportedEventArgs eventArgs = new ProjectImportedEventArgs(
                         importElement.Location.Line,
                         importElement.Location.Column,
-                        ResourceUtilities.GetResourceString("ProjectImportSkippedExpressionEvaluatedToEmpty"),
+                        ProjectImportSkippedExpressionEvaluatedToEmpty,
                         unescapedExpression,
                         importElement.ContainingProject.FullPath,
                         importElement.Location.Line,
@@ -1966,6 +1977,7 @@ namespace Microsoft.Build.Evaluation
                     };
 
                     _evaluationLoggingContext.LogBuildEvent(eventArgs);
+                    resultImports = Array.Empty<ProjectRootElement>();
 
                     return LoadImportsResult.ImportExpressionResolvedToNothing;
                 }
@@ -2007,7 +2019,7 @@ namespace Microsoft.Build.Evaluation
                         ProjectImportedEventArgs eventArgs = new ProjectImportedEventArgs(
                             importElement.Location.Line,
                             importElement.Location.Column,
-                            ResourceUtilities.GetResourceString("ProjectImportSkippedNoMatches"),
+                            ProjectImportSkippedNoMatches,
                             importExpressionEscapedItem,
                             importElement.ContainingProject.FullPath,
                             importElement.Location.Line,
@@ -2137,7 +2149,7 @@ namespace Microsoft.Build.Evaluation
                         }
                         else
                         {
-                            imports.Add(importedProjectElement);
+                            importsList.Add(importedProjectElement);
 
                             if (_lastModifiedProject == null || importedProjectElement.LastWriteTimeWhenRead > _lastModifiedProject.LastWriteTimeWhenRead)
                             {
@@ -2155,7 +2167,7 @@ namespace Microsoft.Build.Evaluation
                                 ProjectImportedEventArgs eventArgs = new ProjectImportedEventArgs(
                                     importElement.Location.Line,
                                     importElement.Location.Column,
-                                    ResourceUtilities.GetResourceString("ProjectImported"),
+                                    ProjectImported,
                                     importedProjectElement.FullPath,
                                     importElement.ContainingProject.FullPath,
                                     importElement.Location.Line,
@@ -2189,7 +2201,7 @@ namespace Microsoft.Build.Evaluation
                                     ProjectImportedEventArgs eventArgs = new ProjectImportedEventArgs(
                                         importElement.Location.Line,
                                         importElement.Location.Column,
-                                        ResourceUtilities.GetResourceString("ProjectImportSkippedMissingFile"),
+                                        ProjectImportSkippedMissingFile,
                                         importFileUnescaped,
                                         importElement.ContainingProject.FullPath,
                                         importElement.Location.Line,
@@ -2221,14 +2233,14 @@ namespace Microsoft.Build.Evaluation
                                 // If IgnoreEmptyImports is enabled, check if the file is considered empty
                                 //
                                 ignoreImport = true;
-                                ignoreImportResource = "ProjectImportSkippedEmptyFile";
+                                ignoreImportResource = ProjectImportSkippedEmptyFile;
                             }
                             else if ((_loadSettings & ProjectLoadSettings.IgnoreInvalidImports) != 0)
                             {
                                 // If IgnoreInvalidImports is enabled, log all other non-handled exceptions and continue
                                 //
                                 ignoreImport = true;
-                                ignoreImportResource = "ProjectImportSkippedInvalidFile";
+                                ignoreImportResource = ProjectImportSkippedInvalidFile;
                             }
 
                             if (ignoreImport)
@@ -2239,7 +2251,7 @@ namespace Microsoft.Build.Evaluation
                                 ProjectImportedEventArgs eventArgs = new ProjectImportedEventArgs(
                                     importElement.Location.Line,
                                     importElement.Location.Column,
-                                    ResourceUtilities.GetResourceString(ignoreImportResource),
+                                    ignoreImportResource,
                                     importFileUnescaped,
                                     importElement.ContainingProject.FullPath,
                                     importElement.Location.Line,
@@ -2277,7 +2289,9 @@ namespace Microsoft.Build.Evaluation
                 }
             }
 
-            if (imports.Count > 0)
+            resultImports = importsList;
+
+            if (importsList.Count > 0)
             {
                 return LoadImportsResult.ProjectsImported;
             }

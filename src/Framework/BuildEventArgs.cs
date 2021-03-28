@@ -5,6 +5,8 @@ using System;
 using System.Runtime.Serialization;
 using System.IO;
 using Microsoft.Build.Shared;
+using System.Globalization;
+using System.Text;
 
 namespace Microsoft.Build.Framework
 {
@@ -136,6 +138,12 @@ namespace Microsoft.Build.Framework
             protected set => message = value;
         }
 
+        protected internal string RawMessage
+        {
+            get => message;
+            set => message = value;
+        }
+
         /// <summary>
         /// Custom help keyword associated with event.
         /// </summary>
@@ -248,5 +256,34 @@ namespace Microsoft.Build.Framework
         }
 #endregion
 
+        internal static Func<string, string[], string> ResourceStringFormatter = (string resourceName, string[] arguments) =>
+        {
+            var sb = new StringBuilder();
+            sb.Append(resourceName);
+            sb.Append("(");
+
+            bool notFirst = false;
+            foreach (var argument in arguments)
+            {
+                if (notFirst)
+                {
+                    sb.Append(",");
+                }
+                else
+                {
+                    notFirst = true;
+                }
+
+                sb.Append(argument);
+            }
+
+            sb.Append(")");
+            return sb.ToString();
+        };
+
+        internal static string FormatResourceStringIgnoreCodeAndKeyword(string resourceName, params string[] arguments)
+        {
+            return ResourceStringFormatter(resourceName, arguments);
+        }
     }
 }

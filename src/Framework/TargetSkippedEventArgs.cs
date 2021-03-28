@@ -26,7 +26,20 @@ namespace Microsoft.Build.Framework
             string message,
             params object[] messageArgs
         )
-            : base(null, null, null, 0, 0, 0, 0, message, null, null, MessageImportance.Low, DateTime.UtcNow, messageArgs)
+            : base(
+                  subcategory: null,
+                  code: null,
+                  file: null,
+                  lineNumber: 0,
+                  columnNumber: 0,
+                  endLineNumber: 0,
+                  endColumnNumber: 0,
+                  message: message,
+                  helpKeyword: null,
+                  senderName: null,
+                  importance: MessageImportance.Low,
+                  eventTimestamp: DateTime.UtcNow,
+                  messageArgs: messageArgs)
         {
         }
 
@@ -49,5 +62,45 @@ namespace Microsoft.Build.Framework
         /// Why the parent target built this target.
         /// </summary>
         public TargetBuiltReason BuildReason { get; set; }
+
+        public bool OriginallySucceeded { get; set; }
+
+        public string Condition { get; set; }
+
+        public string EvaluatedCondition { get; set; }
+
+        public override string Message
+        {
+            get
+            {
+                if (RawMessage == null)
+                {
+                    lock (locker)
+                    {
+                        if (RawMessage == null)
+                        {
+                            if (Condition != null)
+                            {
+                                RawMessage = FormatResourceStringIgnoreCodeAndKeyword(
+                                    "TargetSkippedFalseCondition",
+                                    TargetName,
+                                    Condition,
+                                    EvaluatedCondition);
+                            }
+                            else
+                            {
+                                RawMessage = FormatResourceStringIgnoreCodeAndKeyword(
+                                    OriginallySucceeded
+                                    ? "TargetAlreadyCompleteSuccess"
+                                    : "TargetAlreadyCompleteFailure",
+                                    TargetName);
+                            }
+                        }
+                    }
+                }
+
+                return RawMessage;
+            }
+        }
     }
 }

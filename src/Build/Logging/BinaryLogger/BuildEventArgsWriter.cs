@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.BackEnd.Logging;
@@ -262,7 +263,7 @@ namespace Microsoft.Build.Logging
         private void Write(ProjectStartedEventArgs e)
         {
             Write(BinaryLogRecordKind.ProjectStarted);
-            WriteBuildEventArgsFields(e);
+            WriteBuildEventArgsFields(e, writeMessage: false);
 
             if (e.ParentProjectBuildEventContext == null)
             {
@@ -298,7 +299,7 @@ namespace Microsoft.Build.Logging
         private void Write(ProjectFinishedEventArgs e)
         {
             Write(BinaryLogRecordKind.ProjectFinished);
-            WriteBuildEventArgsFields(e);
+            WriteBuildEventArgsFields(e, writeMessage: false);
             WriteDeduplicatedString(e.ProjectFile);
             Write(e.Succeeded);
         }
@@ -306,7 +307,7 @@ namespace Microsoft.Build.Logging
         private void Write(TargetStartedEventArgs e)
         {
             Write(BinaryLogRecordKind.TargetStarted);
-            WriteBuildEventArgsFields(e);
+            WriteBuildEventArgsFields(e, writeMessage: false);
             WriteDeduplicatedString(e.TargetName);
             WriteDeduplicatedString(e.ProjectFile);
             WriteDeduplicatedString(e.TargetFile);
@@ -317,7 +318,7 @@ namespace Microsoft.Build.Logging
         private void Write(TargetFinishedEventArgs e)
         {
             Write(BinaryLogRecordKind.TargetFinished);
-            WriteBuildEventArgsFields(e);
+            WriteBuildEventArgsFields(e, writeMessage: false);
             Write(e.Succeeded);
             WriteDeduplicatedString(e.ProjectFile);
             WriteDeduplicatedString(e.TargetFile);
@@ -328,7 +329,7 @@ namespace Microsoft.Build.Logging
         private void Write(TaskStartedEventArgs e)
         {
             Write(BinaryLogRecordKind.TaskStarted);
-            WriteBuildEventArgsFields(e);
+            WriteBuildEventArgsFields(e, writeMessage: false);
             WriteDeduplicatedString(e.TaskName);
             WriteDeduplicatedString(e.ProjectFile);
             WriteDeduplicatedString(e.TaskFile);
@@ -337,7 +338,7 @@ namespace Microsoft.Build.Logging
         private void Write(TaskFinishedEventArgs e)
         {
             Write(BinaryLogRecordKind.TaskFinished);
-            WriteBuildEventArgsFields(e);
+            WriteBuildEventArgsFields(e, writeMessage: false);
             Write(e.Succeeded);
             WriteDeduplicatedString(e.TaskName);
             WriteDeduplicatedString(e.ProjectFile);
@@ -444,10 +445,13 @@ namespace Microsoft.Build.Logging
         private void Write(TargetSkippedEventArgs e)
         {
             Write(BinaryLogRecordKind.TargetSkipped);
-            WriteMessageFields(e);
+            WriteMessageFields(e, writeMessage: false);
             WriteDeduplicatedString(e.TargetFile);
             WriteDeduplicatedString(e.TargetName);
             WriteDeduplicatedString(e.ParentTarget);
+            WriteDeduplicatedString(e.Condition);
+            WriteDeduplicatedString(e.EvaluatedCondition);
+            Write(e.OriginallySucceeded);
             Write((int)e.BuildReason);
         }
 
@@ -460,7 +464,7 @@ namespace Microsoft.Build.Logging
         private void Write(PropertyReassignmentEventArgs e)
         {
             Write(BinaryLogRecordKind.PropertyReassignment);
-            WriteMessageFields(e);
+            WriteMessageFields(e, writeMessage: false);
             WriteDeduplicatedString(e.PropertyName);
             WriteDeduplicatedString(e.PreviousValue);
             WriteDeduplicatedString(e.NewValue);
@@ -518,7 +522,7 @@ namespace Microsoft.Build.Logging
         {
             if ((flags & BuildEventArgsFieldFlags.Message) != 0)
             {
-                WriteDeduplicatedString(e.Message);
+                WriteDeduplicatedString(e.RawMessage);
             }
 
             if ((flags & BuildEventArgsFieldFlags.BuildEventContext) != 0)
@@ -596,6 +600,16 @@ namespace Microsoft.Build.Logging
                 Write(e.EndColumnNumber);
             }
 
+            if ((flags & BuildEventArgsFieldFlags.Arguments) != 0)
+            {
+                Write(e.RawArguments.Length);
+                for (int i = 0; i < e.RawArguments.Length; i++)
+                {
+                    string argument = Convert.ToString(e.RawArguments[i], CultureInfo.CurrentCulture);
+                    WriteDeduplicatedString(argument);
+                }
+            }
+
             Write((int)e.Importance);
         }
 
@@ -639,6 +653,11 @@ namespace Microsoft.Build.Logging
             if (e.EndColumnNumber != 0)
             {
                 flags |= BuildEventArgsFieldFlags.EndColumnNumber;
+            }
+
+            if (e.RawArguments != null)
+            {
+                flags |= BuildEventArgsFieldFlags.Arguments;
             }
 
             return flags;
