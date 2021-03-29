@@ -690,10 +690,10 @@ Build
                 flags |= BuildEventArgsFieldFlags.SenderName;
             }
 
-            if (e.ThreadId > 0)
-            {
-                // flags |= BuildEventArgsFieldFlags.ThreadId;
-            }
+            //if (e.ThreadId > 0)
+            //{
+            //    flags |= BuildEventArgsFieldFlags.ThreadId;
+            //}
 
             if (e.Timestamp != default(DateTime))
             {
