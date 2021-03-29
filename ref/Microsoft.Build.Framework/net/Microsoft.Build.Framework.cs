@@ -635,6 +635,8 @@ namespace Microsoft.Build.Framework
         TaskOutput = 1,
         AddItem = 2,
         RemoveItem = 3,
+        SkippedTargetInputs = 4,
+        SkippedTargetOutputs = 5,
     }
     public partial class TaskPropertyInfo
     {

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Microsoft.Build.Collections;
 using Microsoft.Build.Evaluation;
@@ -334,37 +335,32 @@ namespace Microsoft.Build.BackEnd
             return reason;
         }
 
+        private static readonly string SkipTargetUpToDateInputs = ResourceUtilities.GetResourceString("SkipTargetUpToDateInputs");
+        private static readonly string SkipTargetUpToDateOutputs = ResourceUtilities.GetResourceString("SkipTargetUpToDateOutputs");
+
         /// <summary>
         /// Extract only the unique inputs and outputs from all the inputs and outputs gathered
         /// during depedency analysis
         /// </summary>
         private void LogUniqueInputsAndOutputs()
         {
-            var targetInputKeys = _uniqueTargetInputs.Keys;
-            var targetOutputKeys = _uniqueTargetOutputs.Keys;
+            var args = ItemGroupLoggingHelper.CreateTaskParameterEventArgs(
+                _buildEventContext,
+                TaskParameterMessageKind.SkippedTargetInputs,
+                SkipTargetUpToDateInputs,
+                _uniqueTargetInputs.Keys.ToArray(),
+                logItemMetadata: false,
+                DateTime.UtcNow);
+            _loggingService.LogBuildEvent(args);
 
-            var maxContentLength = Math.Max(LengthSum(targetInputKeys), LengthSum(targetOutputKeys));
-            var maxSeparatorLength = Math.Max(targetInputKeys.Count, targetOutputKeys.Count);
-
-            using (var sb = new ReuseableStringBuilder(maxContentLength + maxSeparatorLength))
-            {
-                _loggingService.LogComment(_buildEventContext, MessageImportance.Low, "SkipTargetUpToDateInputs", sb.AppendSeparated(';', targetInputKeys).ToString());
-
-                sb.Clear();
-
-                _loggingService.LogComment(_buildEventContext, MessageImportance.Low, "SkipTargetUpToDateOutputs", sb.AppendSeparated(';', targetOutputKeys).ToString());
-            }
-
-            int LengthSum(ICollection<string> collection)
-            {
-                var sum = 0;
-                foreach (var targetInput in collection)
-                {
-                    sum += targetInput.Length;
-                }
-
-                return sum;
-            }
+            args = ItemGroupLoggingHelper.CreateTaskParameterEventArgs(
+                _buildEventContext,
+                TaskParameterMessageKind.SkippedTargetOutputs,
+                SkipTargetUpToDateOutputs,
+                _uniqueTargetOutputs.Keys.ToArray(),
+                logItemMetadata: false,
+                DateTime.UtcNow);
+            _loggingService.LogBuildEvent(args);
         }
 
         /// <summary>
