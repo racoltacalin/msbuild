@@ -135,6 +135,41 @@ namespace Microsoft.Build.Logging
             currentRecordStream.SetLength(0);
         }
 
+/*
+Base types and inheritance ("EventArgs" suffix omitted):
+
+Build
+    LazyFormattedBuild
+        BuildMessage
+            CriticalBuildMessage
+            EnvironmentVariableRead
+            MetaprojectGenerated
+            ProjectImported
+            PropertyInitialValueSet
+            PropertyReassignment
+            TargetSkipped
+            TaskCommandLine
+            TaskParameter
+            UninitializedPropertyRead
+        BuildStatus
+            TaskStarted
+            TaskFinished
+            TargetStarted
+            TargetFinished
+            ProjectStarted
+            ProjectFinished
+            BuildStarted
+            BuildFinished
+            ProjectEvaluationStarted
+            ProjectEvaluationFinished
+        BuildError
+        BuildWarning
+        CustomBuild
+            ExternalProjectStarted
+            ExternalProjectFinished
+
+*/
+
         private void WriteCore(BuildEventArgs e)
         {
             switch (e)
@@ -375,62 +410,22 @@ namespace Microsoft.Build.Logging
 
         private void Write(BuildMessageEventArgs e)
         {
-            if (e is TaskParameterEventArgs taskParameter)
+            switch (e)
             {
-                Write(taskParameter);
-                return;
+                case TaskParameterEventArgs taskParameter: Write(taskParameter); break;
+                case ProjectImportedEventArgs projectImported: Write(projectImported); break;
+                case TargetSkippedEventArgs targetSkipped: Write(targetSkipped); break;
+                case PropertyReassignmentEventArgs propertyReassignment: Write(propertyReassignment); break;
+                case TaskCommandLineEventArgs taskCommandLine: Write(taskCommandLine); break;
+                case UninitializedPropertyReadEventArgs uninitializedPropertyRead: Write(uninitializedPropertyRead); break;
+                case EnvironmentVariableReadEventArgs environmentVariableRead: Write(environmentVariableRead); break;
+                case PropertyInitialValueSetEventArgs propertyInitialValueSet: Write(propertyInitialValueSet); break;
+                case CriticalBuildMessageEventArgs criticalBuildMessage: Write(criticalBuildMessage); break;
+                default: // actual BuildMessageEventArgs
+                    Write(BinaryLogRecordKind.Message);
+                    WriteMessageFields(e, writeImportance: true);
+                    break;
             }
-
-            if (e is CriticalBuildMessageEventArgs criticalBuildMessage)
-            {
-                Write(criticalBuildMessage);
-                return;
-            }
-
-            if (e is TaskCommandLineEventArgs taskCommandLine)
-            {
-                Write(taskCommandLine);
-                return;
-            }
-
-            if (e is ProjectImportedEventArgs projectImported)
-            {
-                Write(projectImported);
-                return;
-            }
-
-            if (e is TargetSkippedEventArgs targetSkipped)
-            {
-                Write(targetSkipped);
-                return;
-            }
-
-            if (e is PropertyReassignmentEventArgs propertyReassignment)
-            {
-                Write(propertyReassignment);
-                return;
-            }
-
-            if (e is UninitializedPropertyReadEventArgs uninitializedPropertyRead)
-            {
-                Write(uninitializedPropertyRead);
-                return;
-            }
-
-            if (e is EnvironmentVariableReadEventArgs environmentVariableRead)
-            {
-                Write(environmentVariableRead);
-                return;
-            }
-
-            if (e is PropertyInitialValueSetEventArgs propertyInitialValueSet)
-            {
-                Write(propertyInitialValueSet);
-                return;
-            }
-
-            Write(BinaryLogRecordKind.Message);
-            WriteMessageFields(e);
         }
 
         private void Write(ProjectImportedEventArgs e)
@@ -464,7 +459,7 @@ namespace Microsoft.Build.Logging
         private void Write(PropertyReassignmentEventArgs e)
         {
             Write(BinaryLogRecordKind.PropertyReassignment);
-            WriteMessageFields(e, writeMessage: false);
+            WriteMessageFields(e, writeMessage: false, writeImportance: true);
             WriteDeduplicatedString(e.PropertyName);
             WriteDeduplicatedString(e.PreviousValue);
             WriteDeduplicatedString(e.NewValue);
@@ -474,14 +469,14 @@ namespace Microsoft.Build.Logging
         private void Write(UninitializedPropertyReadEventArgs e)
         {
             Write(BinaryLogRecordKind.UninitializedPropertyRead);
-            WriteMessageFields(e);
+            WriteMessageFields(e, writeImportance: true);
             WriteDeduplicatedString(e.PropertyName);
         }
 
         private void Write(PropertyInitialValueSetEventArgs e)
         {
             Write(BinaryLogRecordKind.PropertyInitialValueSet);
-            WriteMessageFields(e);
+            WriteMessageFields(e, writeImportance: true);
             WriteDeduplicatedString(e.PropertyName);
             WriteDeduplicatedString(e.PropertyValue);
             WriteDeduplicatedString(e.PropertySource);
@@ -490,14 +485,14 @@ namespace Microsoft.Build.Logging
         private void Write(EnvironmentVariableReadEventArgs e)
         {
             Write(BinaryLogRecordKind.EnvironmentVariableRead);
-            WriteMessageFields(e);
+            WriteMessageFields(e, writeImportance: true);
             WriteDeduplicatedString(e.EnvironmentVariableName);
         }
 
         private void Write(TaskCommandLineEventArgs e)
         {
             Write(BinaryLogRecordKind.TaskCommandLine);
-            WriteMessageFields(e);
+            WriteMessageFields(e, writeMessage: false, writeImportance: true);
             WriteDeduplicatedString(e.CommandLine);
             WriteDeduplicatedString(e.TaskName);
         }
@@ -551,10 +546,10 @@ namespace Microsoft.Build.Logging
             }
         }
 
-        private void WriteMessageFields(BuildMessageEventArgs e, bool writeMessage = true)
+        private void WriteMessageFields(BuildMessageEventArgs e, bool writeMessage = true, bool writeImportance = false)
         {
             var flags = GetBuildEventArgsFieldFlags(e, writeMessage);
-            flags = GetMessageFlags(e, flags);
+            flags = GetMessageFlags(e, flags, writeMessage, writeImportance);
 
             Write((int)flags);
 
@@ -610,10 +605,13 @@ namespace Microsoft.Build.Logging
                 }
             }
 
-            Write((int)e.Importance);
+            if ((flags & BuildEventArgsFieldFlags.Importance) != 0)
+            {
+                Write((int)e.Importance);
+            }
         }
 
-        private static BuildEventArgsFieldFlags GetMessageFlags(BuildMessageEventArgs e, BuildEventArgsFieldFlags flags)
+        private static BuildEventArgsFieldFlags GetMessageFlags(BuildMessageEventArgs e, BuildEventArgsFieldFlags flags, bool writeMessage = true, bool writeImportance = false)
         {
             if (e.Subcategory != null)
             {
@@ -655,9 +653,14 @@ namespace Microsoft.Build.Logging
                 flags |= BuildEventArgsFieldFlags.EndColumnNumber;
             }
 
-            if (e.RawArguments != null)
+            if (writeMessage && e.RawArguments != null && e.RawArguments.Length > 0)
             {
                 flags |= BuildEventArgsFieldFlags.Arguments;
+            }
+
+            if (writeImportance && e.Importance != MessageImportance.Low)
+            {
+                flags |= BuildEventArgsFieldFlags.Importance;
             }
 
             return flags;

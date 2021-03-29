@@ -28,7 +28,20 @@ namespace Microsoft.Build.Framework
             string message,
             params object[] messageArgs
         )
-            : base(null, null, null, lineNumber, columnNumber, 0, 0, message, null, null, MessageImportance.Low, DateTime.UtcNow, messageArgs)
+            : base(
+                  subcategory: null,
+                  code: null,
+                  file: null,
+                  lineNumber: lineNumber,
+                  columnNumber: columnNumber,
+                  endLineNumber: 0,
+                  endColumnNumber: 0,
+                  message: message,
+                  helpKeyword: null,
+                  senderName: null,
+                  importance: MessageImportance.Low,
+                  eventTimestamp: DateTime.UtcNow,
+                  messageArgs: messageArgs)
         {
         }
 
