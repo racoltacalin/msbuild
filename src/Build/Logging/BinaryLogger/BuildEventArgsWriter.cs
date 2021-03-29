@@ -692,7 +692,7 @@ Build
 
             if (e.ThreadId > 0)
             {
-                flags |= BuildEventArgsFieldFlags.ThreadId;
+                // flags |= BuildEventArgsFieldFlags.ThreadId;
             }
 
             if (e.Timestamp != default(DateTime))
