@@ -18,5 +18,10 @@ namespace Microsoft.Build.Framework
         /// <param name="warningCode">The warning code to check.</param>
         /// <returns>A boolean to determine whether the warning should be treated as an error.</returns>
         public bool ShouldTreatWarningAsError(string warningCode);
+
+        /// <summary>
+        /// Exposes additional options to tasks.
+        /// </summary>
+        public BuildEngineOptions Options { get; }
     }
 }

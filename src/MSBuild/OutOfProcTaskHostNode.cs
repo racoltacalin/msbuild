@@ -279,6 +279,11 @@ namespace Microsoft.Build.CommandLine
         {
             return WarningsAsErrors != null && (WarningsAsErrors.Count == 0 || WarningsAsErrors.Contains(warningCode));
         }
+
+#if !CLR2COMPATIBILITY
+        public BuildEngineOptions Options { get; } = new BuildEngineOptions();
+#endif
+
         #endregion
 
         #region IBuildEngine Implementation (Methods)

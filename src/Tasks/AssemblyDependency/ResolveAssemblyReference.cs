@@ -1314,7 +1314,7 @@ namespace Microsoft.Build.Tasks
         /// </summary>
         private void LogInputs()
         {
-            if (Traits.Instance.EscapeHatches.LogTaskInputs)
+            if (this.BuildEngine8.Options.LogTaskInputs)
             {
                 // the inputs will be logged automatically anyway, avoid duplication in the logs
                 return;
