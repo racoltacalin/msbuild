@@ -56,6 +56,94 @@ namespace Microsoft.Build.Tasks
         /// </summary>
         public ResolveAssemblyReference()
         {
+            Strings.Initialize(Log);
+        }
+
+        private static class Strings
+        {
+            public const string FourSpaces = "    ";
+            public const string EightSpaces = "        ";
+            public const string TenSpaces = "          ";
+            public const string TwelveSpaces = "            ";
+
+            public static string Resolved;
+            public static string ResolvedFrom;
+            public static string FoundRelatedFile;
+            public static string FoundSatelliteFile;
+            public static string FoundScatterFile;
+            public static string NotCopyLocalBecausePrerequisite;
+            public static string NotCopyLocalBecauseIncomingItemAttributeOverrode;
+            public static string NotCopyLocalBecauseFrameworksFiles;
+            public static string NotCopyLocalBecauseReferenceFoundInGAC;
+            public static string NotCopyLocalBecauseConflictVictim;
+            public static string NotCopyLocalBecauseEmbedded;
+            public static string NoBecauseParentReferencesFoundInGac;
+            public static string ImageRuntimeVersion;
+            public static string IsAWinMdFile;
+            public static string LogAttributeFormat;
+            public static string UnifiedPrimaryReference;
+            public static string PrimaryReference;
+            public static string UnifiedDependency;
+            public static string Dependency;
+            public static string UnificationByAutoUnify;
+            public static string UnificationByAppConfig;
+            public static string UnificationByFrameworkRetarget;
+            public static string RemappedReference;
+            public static string SearchPath;
+            public static string SearchedAssemblyFoldersEx;
+            public static string ConsideredAndRejectedBecauseNoFile;
+            public static string ConsideredAndRejectedBecauseFusionNamesDidntMatch;
+            public static string ConsideredAndRejectedBecauseTargetDidntHaveFusionName;
+            public static string ConsideredAndRejectedBecauseNotInGac;
+            public static string ConsideredAndRejectedBecauseNotAFileNameOnDisk;
+            public static string TargetedProcessorArchitectureDoesNotMatch;
+            public static string RequiredBy;
+            public static string FormattedAssemblyInfo;
+
+            internal static void Initialize(TaskLoggingHelper log)
+            {
+                if (Resolved != null)
+                {
+                    return;
+                }
+
+                string GetResource(string name) => log.GetResourceMessage(name);
+                string GetResource4Spaces(string name) => FourSpaces + log.GetResourceMessage(name);
+
+                Resolved = GetResource4Spaces("ResolveAssemblyReference.Resolved");
+                ResolvedFrom = GetResource4Spaces("ResolveAssemblyReference.ResolvedFrom");
+                FoundRelatedFile = GetResource4Spaces("ResolveAssemblyReference.FoundRelatedFile");
+                FoundSatelliteFile = GetResource4Spaces("ResolveAssemblyReference.FoundSatelliteFile");
+                FoundScatterFile = GetResource4Spaces("ResolveAssemblyReference.FoundScatterFile");
+                NotCopyLocalBecausePrerequisite = GetResource4Spaces("ResolveAssemblyReference.NotCopyLocalBecausePrerequisite");
+                NotCopyLocalBecauseIncomingItemAttributeOverrode = GetResource4Spaces("ResolveAssemblyReference.NotCopyLocalBecauseIncomingItemAttributeOverrode");
+                NotCopyLocalBecauseFrameworksFiles = GetResource4Spaces("ResolveAssemblyReference.NotCopyLocalBecauseFrameworksFiles");
+                NotCopyLocalBecauseReferenceFoundInGAC = GetResource4Spaces("ResolveAssemblyReference.NotCopyLocalBecauseReferenceFoundInGAC");
+                NotCopyLocalBecauseConflictVictim = GetResource4Spaces("ResolveAssemblyReference.NotCopyLocalBecauseConflictVictim");
+                NotCopyLocalBecauseEmbedded = GetResource4Spaces("ResolveAssemblyReference.NotCopyLocalBecauseEmbedded");
+                NoBecauseParentReferencesFoundInGac = GetResource4Spaces("ResolveAssemblyReference.NoBecauseParentReferencesFoundInGac");
+                ImageRuntimeVersion = GetResource4Spaces("ResolveAssemblyReference.ImageRuntimeVersion");
+                IsAWinMdFile = GetResource4Spaces("ResolveAssemblyReference.IsAWinMdFile");
+                LogAttributeFormat = EightSpaces + GetResource("ResolveAssemblyReference.LogAttributeFormat");
+                UnifiedPrimaryReference = GetResource("ResolveAssemblyReference.UnifiedPrimaryReference");
+                PrimaryReference = GetResource("ResolveAssemblyReference.PrimaryReference");
+                UnifiedDependency = GetResource("ResolveAssemblyReference.UnifiedDependency");
+                Dependency = GetResource("ResolveAssemblyReference.Dependency");
+                UnificationByAutoUnify = GetResource4Spaces("ResolveAssemblyReference.UnificationByAutoUnify");
+                UnificationByAppConfig = GetResource4Spaces("ResolveAssemblyReference.UnificationByAppConfig");
+                UnificationByFrameworkRetarget = GetResource4Spaces("ResolveAssemblyReference.UnificationByFrameworkRetarget");
+                RemappedReference = GetResource4Spaces("ResolveAssemblyReference.RemappedReference");
+                SearchPath = EightSpaces + GetResource("ResolveAssemblyReference.SearchPath");
+                SearchedAssemblyFoldersEx = EightSpaces + GetResource("ResolveAssemblyReference.SearchedAssemblyFoldersEx");
+                ConsideredAndRejectedBecauseNoFile = EightSpaces + GetResource("ResolveAssemblyReference.ConsideredAndRejectedBecauseNoFile");
+                ConsideredAndRejectedBecauseFusionNamesDidntMatch = EightSpaces + GetResource("ResolveAssemblyReference.ConsideredAndRejectedBecauseFusionNamesDidntMatch");
+                ConsideredAndRejectedBecauseTargetDidntHaveFusionName = EightSpaces + GetResource("ResolveAssemblyReference.ConsideredAndRejectedBecauseTargetDidntHaveFusionName");
+                ConsideredAndRejectedBecauseNotInGac = EightSpaces + GetResource("ResolveAssemblyReference.ConsideredAndRejectedBecauseNotInGac");
+                ConsideredAndRejectedBecauseNotAFileNameOnDisk = EightSpaces + GetResource("ResolveAssemblyReference.ConsideredAndRejectedBecauseNotAFileNameOnDisk");
+                TargetedProcessorArchitectureDoesNotMatch = EightSpaces + GetResource("ResolveAssemblyReference.TargetedProcessorArchitectureDoesNotMatch");
+                RequiredBy = GetResource4Spaces("ResolveAssemblyReference.RequiredBy");
+                FormattedAssemblyInfo = GetResource4Spaces("ResolveAssemblyReference.FormattedAssemblyInfo");
+            }
         }
 
         #region Properties
@@ -1201,8 +1289,9 @@ namespace Microsoft.Build.Tasks
         /// </summary>
         private void LogReferenceDependenciesAndSourceItemsToStringBuilder(string fusionName, Reference conflictCandidate, StringBuilder log)
         {
-            ErrorUtilities.VerifyThrowInternalNull(conflictCandidate, "ConflictCandidate");
-            log.Append(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.FourSpaceIndent", ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.ReferenceDependsOn", fusionName, conflictCandidate.FullPath)));
+            ErrorUtilities.VerifyThrowInternalNull(conflictCandidate, nameof(conflictCandidate));
+            log.Append(Strings.FourSpaces);
+            log.Append(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.ReferenceDependsOn", fusionName, conflictCandidate.FullPath));
 
             if (conflictCandidate.IsPrimary)
             {
@@ -1212,7 +1301,10 @@ namespace Microsoft.Build.Tasks
                 }
                 else
                 {
-                    log.AppendLine().Append(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.EightSpaceIndent", ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.UnResolvedPrimaryItemSpec", conflictCandidate.PrimarySourceItem)));
+                    log
+                        .AppendLine()
+                        .Append(Strings.EightSpaces)
+                        .Append(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.UnResolvedPrimaryItemSpec", conflictCandidate.PrimarySourceItem));
                 }
             }
 
@@ -1232,10 +1324,10 @@ namespace Microsoft.Build.Tasks
         {
             log.AppendLine().AppendLine(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.EightSpaceIndent", dependeeReference.FullPath));
 
-            log.Append(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.TenSpaceIndent", ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.PrimarySourceItemsForReference", dependeeReference.FullPath)));
+            log.Append(Strings.TenSpaces).Append(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.PrimarySourceItemsForReference", dependeeReference.FullPath));
             foreach (ITaskItem sourceItem in dependeeReference.GetSourceItems())
             {
-                log.AppendLine().Append(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.TwelveSpaceIndent", sourceItem.ItemSpec));
+                log.AppendLine().Append(Strings.TwelveSpaces).Append(sourceItem.ItemSpec);
             }
         }
 
@@ -1472,7 +1564,7 @@ namespace Microsoft.Build.Tasks
             string metadataValue = item.GetMetadata(metadataName);
             if (!string.IsNullOrEmpty(metadataValue))
             {
-                Log.LogMessageFromResources(MessageImportance.Low, "ResolveAssemblyReference.EightSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.LogAttributeFormat", metadataName, metadataValue));
+                Log.LogMessage(MessageImportance.Low, Strings.LogAttributeFormat, metadataName, metadataValue);
             }
         }
 
@@ -1488,22 +1580,22 @@ namespace Microsoft.Build.Tasks
             {
                 if (reference.IsUnified)
                 {
-                    Log.LogMessageFromResources(importance, "ResolveAssemblyReference.UnifiedPrimaryReference", fusionName);
+                    Log.LogMessage(importance, Strings.UnifiedPrimaryReference, fusionName);
                 }
                 else
                 {
-                    Log.LogMessageFromResources(importance, "ResolveAssemblyReference.PrimaryReference", fusionName);
+                    Log.LogMessage(importance, Strings.PrimaryReference, fusionName);
                 }
             }
             else
             {
                 if (reference.IsUnified)
                 {
-                    Log.LogMessageFromResources(importance, "ResolveAssemblyReference.UnifiedDependency", fusionName);
+                    Log.LogMessage(importance, Strings.UnifiedDependency, fusionName);
                 }
                 else
                 {
-                    Log.LogMessageFromResources(importance, "ResolveAssemblyReference.Dependency", fusionName);
+                    Log.LogMessage(importance, Strings.Dependency, fusionName);
                 }
             }
 
@@ -1514,16 +1606,16 @@ namespace Microsoft.Build.Tasks
                     case UnificationReason.BecauseOfBindingRedirect:
                         if (AutoUnify)
                         {
-                            Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.UnificationByAutoUnify", unificationVersion.version, unificationVersion.referenceFullPath));
+                            Log.LogMessage(importance, Strings.UnificationByAutoUnify, unificationVersion.version, unificationVersion.referenceFullPath);
                         }
                         else
                         {
-                            Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.UnificationByAppConfig", unificationVersion.version, _appConfigFile, unificationVersion.referenceFullPath));
+                            Log.LogMessage(importance, Strings.UnificationByAppConfig, unificationVersion.version, _appConfigFile, unificationVersion.referenceFullPath);
                         }
                         break;
 
                     case UnificationReason.FrameworkRetarget:
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.UnificationByFrameworkRetarget", unificationVersion.version, unificationVersion.referenceFullPath));
+                        Log.LogMessage(importance, Strings.UnificationByFrameworkRetarget, unificationVersion.version, unificationVersion.referenceFullPath);
                         break;
 
                     case UnificationReason.DidntUnify:
@@ -1537,7 +1629,7 @@ namespace Microsoft.Build.Tasks
 
             foreach (AssemblyRemapping remapping in reference.RemappedAssemblyNames())
             {
-                Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.RemappedReference", remapping.From.FullName, remapping.To.FullName));
+                Log.LogMessage(importance, Strings.RemappedReference, remapping.From.FullName, remapping.To.FullName);
             }
         }
 
@@ -1584,7 +1676,16 @@ namespace Microsoft.Build.Tasks
                 if (reference.IsPrimary && !dependencyProblem)
                 {
                     // Treat it as a warning
-                    Log.LogWarning(null, warningCode, helpKeyword, null, 0, 0, 0, 0, messageOnly);
+                    Log.LogWarning(
+                        subcategory: null,
+                        warningCode,
+                        helpKeyword,
+                        file: null,
+                        lineNumber: 0,
+                        columnNumber: 0,
+                        endLineNumber: 0,
+                        endColumnNumber: 0,
+                        message: messageOnly);
                 }
                 else
                 {
@@ -1605,8 +1706,8 @@ namespace Microsoft.Build.Tasks
 
             if (reference.IsResolved)
             {
-                Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.Resolved", reference.FullPath));
-                Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.ResolvedFrom", reference.ResolvedSearchPath));
+                Log.LogMessage(importance, Strings.Resolved, reference.FullPath);
+                Log.LogMessage(importance, Strings.ResolvedFrom, reference.ResolvedSearchPath);
             }
         }
 
@@ -1650,10 +1751,10 @@ namespace Microsoft.Build.Tasks
                     if (lastSearchPath != location.SearchPath)
                     {
                         lastSearchPath = location.SearchPath;
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.EightSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.SearchPath", lastSearchPath));
+                        Log.LogMessage(importance, Strings.SearchPath, lastSearchPath);
                         if (logAssemblyFoldersMinimal)
                         {
-                            Log.LogMessageFromResources(importance, "ResolveAssemblyReference.EightSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.SearchedAssemblyFoldersEx"));
+                            Log.LogMessage(importance, Strings.SearchedAssemblyFoldersEx);
                         }
                     }
 
@@ -1664,33 +1765,38 @@ namespace Microsoft.Build.Tasks
                             {
                                 if (!logAssemblyFoldersMinimal)
                                 {
-                                    Log.LogMessageFromResources(importance, "ResolveAssemblyReference.EightSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.ConsideredAndRejectedBecauseNoFile", location.FileNameAttempted));
+                                    Log.LogMessage(importance, Strings.ConsideredAndRejectedBecauseNoFile, location.FileNameAttempted);
                                 }
                                 break;
                             }
                         case NoMatchReason.FusionNamesDidNotMatch:
-                            Log.LogMessageFromResources(importance, "ResolveAssemblyReference.EightSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.ConsideredAndRejectedBecauseFusionNamesDidntMatch", location.FileNameAttempted, location.AssemblyName.FullName, fusionName));
+                            Log.LogMessage(importance, Strings.ConsideredAndRejectedBecauseFusionNamesDidntMatch, location.FileNameAttempted, location.AssemblyName.FullName, fusionName);
                             break;
 
                         case NoMatchReason.TargetHadNoFusionName:
-                            Log.LogMessageFromResources(importance, "ResolveAssemblyReference.EightSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.ConsideredAndRejectedBecauseTargetDidntHaveFusionName", location.FileNameAttempted));
+                            Log.LogMessage(importance, Strings.ConsideredAndRejectedBecauseTargetDidntHaveFusionName, location.FileNameAttempted);
                             break;
 
                         case NoMatchReason.NotInGac:
-                            Log.LogMessageFromResources(importance, "ResolveAssemblyReference.EightSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.ConsideredAndRejectedBecauseNotInGac", location.FileNameAttempted));
+                            Log.LogMessage(importance, Strings.ConsideredAndRejectedBecauseNotInGac, location.FileNameAttempted);
                             break;
 
                         case NoMatchReason.NotAFileNameOnDisk:
                             {
                                 if (!logAssemblyFoldersMinimal)
                                 {
-                                    Log.LogMessageFromResources(importance, "ResolveAssemblyReference.EightSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.ConsideredAndRejectedBecauseNotAFileNameOnDisk", location.FileNameAttempted));
+                                    Log.LogMessage(importance, Strings.ConsideredAndRejectedBecauseNotAFileNameOnDisk, location.FileNameAttempted);
                                 }
 
                                 break;
                             }
                         case NoMatchReason.ProcessorArchitectureDoesNotMatch:
-                            Log.LogMessageFromResources(importance, "ResolveAssemblyReference.EightSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.TargetedProcessorArchitectureDoesNotMatch", location.FileNameAttempted, location.AssemblyName.AssemblyName.ProcessorArchitecture.ToString(), _targetProcessorArchitecture));
+                            Log.LogMessage(
+                                importance,
+                                Strings.TargetedProcessorArchitectureDoesNotMatch,
+                                location.FileNameAttempted,
+                                location.AssemblyName.AssemblyName.ProcessorArchitecture.ToString(),
+                                _targetProcessorArchitecture);
                             break;
                         default:
                             Debug.Assert(false, "Should have handled this case.");
@@ -1712,7 +1818,7 @@ namespace Microsoft.Build.Tasks
                 ICollection<ITaskItem> dependees = reference.GetSourceItems();
                 foreach (ITaskItem dependee in dependees)
                 {
-                    Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.RequiredBy", dependee.ItemSpec));
+                    Log.LogMessage(importance, Strings.RequiredBy, dependee.ItemSpec);
                 }
             }
         }
@@ -1730,7 +1836,7 @@ namespace Microsoft.Build.Tasks
                 {
                     foreach (string relatedFileExtension in reference.GetRelatedFileExtensions())
                     {
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.FoundRelatedFile", reference.FullPathWithoutExtension + relatedFileExtension));
+                        Log.LogMessage(importance, Strings.FoundRelatedFile, reference.FullPathWithoutExtension + relatedFileExtension);
                     }
                 }
             }
@@ -1745,12 +1851,12 @@ namespace Microsoft.Build.Tasks
         {
             foreach (string satelliteFile in reference.GetSatelliteFiles())
             {
-                Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.FoundSatelliteFile", satelliteFile));
+                Log.LogMessage(importance, Strings.FoundSatelliteFile, satelliteFile);
             }
         }
 
         /// <summary>
-        /// Log the satellite files.
+        /// Log scatter files.
         /// </summary>
         /// <param name="reference">The reference.</param>
         /// <param name="importance">The importance of the message.</param>
@@ -1758,7 +1864,7 @@ namespace Microsoft.Build.Tasks
         {
             foreach (string scatterFile in reference.GetScatterFiles())
             {
-                Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.FoundScatterFile", scatterFile));
+                Log.LogMessageFromResources(importance, Strings.FoundScatterFile, scatterFile);
             }
         }
 
@@ -1778,32 +1884,32 @@ namespace Microsoft.Build.Tasks
                         break;
 
                     case CopyLocalState.NoBecausePrerequisite:
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.NotCopyLocalBecausePrerequisite"));
+                        Log.LogMessage(importance, Strings.NotCopyLocalBecausePrerequisite);
                         break;
 
                     case CopyLocalState.NoBecauseReferenceItemHadMetadata:
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.NotCopyLocalBecauseIncomingItemAttributeOverrode"));
+                        Log.LogMessage(importance, Strings.NotCopyLocalBecauseIncomingItemAttributeOverrode);
                         break;
 
                     case CopyLocalState.NoBecauseFrameworkFile:
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.NotCopyLocalBecauseFrameworksFiles"));
+                        Log.LogMessage(importance, Strings.NotCopyLocalBecauseFrameworksFiles);
                         break;
 
                     case CopyLocalState.NoBecauseReferenceResolvedFromGAC:
                     case CopyLocalState.NoBecauseReferenceFoundInGAC:
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.NotCopyLocalBecauseReferenceFoundInGAC"));
+                        Log.LogMessage(importance, Strings.NotCopyLocalBecauseReferenceFoundInGAC);
                         break;
 
                     case CopyLocalState.NoBecauseConflictVictim:
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.NotCopyLocalBecauseConflictVictim"));
+                        Log.LogMessage(importance, Strings.NotCopyLocalBecauseConflictVictim);
                         break;
 
                     case CopyLocalState.NoBecauseEmbedded:
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.NotCopyLocalBecauseEmbedded"));
+                        Log.LogMessage(importance, Strings.NotCopyLocalBecauseEmbedded);
                         break;
 
                     case CopyLocalState.NoBecauseParentReferencesFoundInGAC:
-                        Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.NoBecauseParentReferencesFoundInGac"));
+                        Log.LogMessage(importance, Strings.NoBecauseParentReferencesFoundInGac);
                         break;
 
                     default:
@@ -1820,11 +1926,15 @@ namespace Microsoft.Build.Tasks
         {
             if (!reference.IsUnresolvable && !reference.IsBadImage)
             {
-                Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.ImageRuntimeVersion", reference.ImageRuntime));
+                // Don't log the overwhelming default as it just pollutes the logs.
+                if (reference.ImageRuntime != "v4.0.30319")
+                {
+                    Log.LogMessage(importance, Strings.ImageRuntimeVersion, reference.ImageRuntime);
+                }
 
                 if (reference.IsWinMDFile)
                 {
-                    Log.LogMessageFromResources(importance, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.IsAWinMdFile"));
+                    Log.LogMessage(importance, Strings.IsAWinMdFile);
                 }
             }
         }
@@ -1844,14 +1954,14 @@ namespace Microsoft.Build.Tasks
                     {
                         Debug.Assert(!reference.IsPrimary, "A primary reference should never lose a conflict because of version. This is an insoluble conflict instead.");
                         string message = Log.FormatResourceString("ResolveAssemblyReference.ConflictHigherVersionChosen", reference.ConflictVictorName);
-                        log.AppendLine().Append(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.FourSpaceIndent", message));
+                        log.AppendLine().Append(Strings.FourSpaces).Append(message);
                         break;
                     }
 
                 case ConflictLossReason.WasNotPrimary:
                     {
                         string message = Log.FormatResourceString("ResolveAssemblyReference.ConflictPrimaryChosen", reference.ConflictVictorName, fusionName);
-                        log.AppendLine().Append(ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("ResolveAssemblyReference.FourSpaceIndent", message));
+                        log.AppendLine().Append(Strings.FourSpaces).Append(message);
                         break;
                     }
 
@@ -2057,10 +2167,10 @@ namespace Microsoft.Build.Tasks
                     List<string> whiteListErrorFilesNames = new List<string>();
 
                     // Check for partial success in GetRedistList and log any tolerated exceptions.
-                    if (redistList?.Count > 0 || targetingProfile || ShouldUseSubsetBlackList())
+                    if (redistList?.Count > 0 || targetingProfile || ShouldUseSubsetExclusionList())
                     {
                         // If we are not targeting a dev 10 profile and we have the required components to generate a orcas style subset, do so
-                        if (!targetingProfile && ShouldUseSubsetBlackList())
+                        if (!targetingProfile && ShouldUseSubsetExclusionList())
                         {
                             // Based in the target framework subset names find the paths to the files
                             SubsetListFinder whiteList = new SubsetListFinder(_targetFrameworkSubsets);
@@ -2590,7 +2700,7 @@ namespace Microsoft.Build.Tasks
                 fullFrameworkRedistList = RedistList.GetRedistList(fullRedistAssemblyTableInfo);
                 if (fullFrameworkRedistList != null)
                 {
-                    // Generate the black list by determining what assemblies are in the full framework but not in the profile.
+                    // Generate the exclusion list by determining what assemblies are in the full framework but not in the profile.
                     // The installedAssemblyTableInfo is the list of xml files for the Client Profile redist, these are the whitelist xml files.
                     Log.LogMessageFromResources("ResolveAssemblyReference.ProfileExclusionListWillBeGenerated");
 
@@ -2696,7 +2806,7 @@ namespace Microsoft.Build.Tasks
         /// <summary>
         /// Log the target framework subset information.
         /// </summary>
-        private void DumpTargetProfileLists(AssemblyTableInfo[] installedAssemblyTableInfo, AssemblyTableInfo[] whiteListSubsetTableInfo, ReferenceTable referenceTable)
+        private void DumpTargetProfileLists(AssemblyTableInfo[] installedAssemblyTableInfo, AssemblyTableInfo[] inclusionListSubsetTableInfo, ReferenceTable referenceTable)
         {
             if (installedAssemblyTableInfo != null)
             {
@@ -2711,18 +2821,18 @@ namespace Microsoft.Build.Tasks
                     {
                         if (redistInfo != null)
                         {
-                            Log.LogMessageFromResources(MessageImportance.Low, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.FormattedAssemblyInfo", redistInfo.Path));
+                            Log.LogMessage(MessageImportance.Low, Strings.FormattedAssemblyInfo, redistInfo.Path);
                         }
                     }
 
                     Log.LogMessageFromResources(MessageImportance.Low, "ResolveAssemblyReference.TargetFrameworkWhiteListLogHeader");
-                    if (whiteListSubsetTableInfo != null)
+                    if (inclusionListSubsetTableInfo != null)
                     {
-                        foreach (AssemblyTableInfo whiteListInfo in whiteListSubsetTableInfo)
+                        foreach (AssemblyTableInfo inclusionListInfo in inclusionListSubsetTableInfo)
                         {
-                            if (whiteListInfo != null)
+                            if (inclusionListInfo != null)
                             {
-                                Log.LogMessageFromResources(MessageImportance.Low, "ResolveAssemblyReference.FourSpaceIndent", Log.FormatResourceString("ResolveAssemblyReference.FormattedAssemblyInfo", whiteListInfo.Path));
+                                Log.LogMessage(MessageImportance.Low, Strings.FormattedAssemblyInfo, inclusionListInfo.Path);
                             }
                         }
                     }
@@ -2745,11 +2855,11 @@ namespace Microsoft.Build.Tasks
         /// The black list should only be used if there are TargetFrameworkSubsets to use or TargetFrameworkProfiles.
         ///
         /// 1) If we find a Full or equivalent marker in the list of subsets passed in we do not want to generate a black list even if installedAssemblySubsets are passed in
-        /// 2) If we are ignoring the default installed subset tables and we have not passed in any additional subset tables, we do not want to generate a black list
-        /// 3) If no targetframework subsets were passed in and no additional subset tables were passed in, we do not want to generate a blacklist
+        /// 2) If we are ignoring the default installed subset tables and we have not passed in any additional subset tables, we do not want to generate an exclusion list
+        /// 3) If no targetframework subsets were passed in and no additional subset tables were passed in, we do not want to generate an exclusion list
         /// </summary>
-        /// <returns>True if we should generate a black list, false if a blacklist should not be generated</returns>
-        private bool ShouldUseSubsetBlackList()
+        /// <returns>True if we should generate an exclusion list</returns>
+        private bool ShouldUseSubsetExclusionList()
         {
             // Check for full subset names in the passed in list of subsets to search for
             foreach (string fullSubsetName in _fullTargetFrameworkSubsetNames)
