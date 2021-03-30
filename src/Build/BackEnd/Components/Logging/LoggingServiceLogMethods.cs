@@ -56,7 +56,7 @@ namespace Microsoft.Build.BackEnd.Logging
         {
             lock (_lockObject)
             {
-                this.LogCommentFromText(buildEventContext, importance, message, null);
+                this.LogCommentFromText(buildEventContext, importance, message, messageArgs: null);
             }
         }
 
@@ -82,8 +82,8 @@ namespace Microsoft.Build.BackEnd.Logging
                     BuildMessageEventArgs buildEvent = new BuildMessageEventArgs
                         (
                             message,
-                            null,
-                            "MSBuild",
+                            helpKeyword: null,
+                            senderName: "MSBuild",
                             importance,
                             DateTime.UtcNow,
                             messageArgs

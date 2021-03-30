@@ -1349,6 +1349,8 @@ namespace Microsoft.Build.BackEnd
             return InternalSetTaskParameter(parameter, (object)parameterValue);
         }
 
+        private static readonly string TaskParameterFormatString = ItemGroupLoggingHelper.TaskParameterPrefix + "{0}={1}";
+
         /// <summary>
         /// Given an instantiated task, this helper method sets the specified parameter
         /// </summary>
@@ -1360,7 +1362,6 @@ namespace Microsoft.Build.BackEnd
         {
             bool success = false;
 
-            // Logging currently enabled only by an env var.
             if (LogTaskInputs && !_taskLoggingContext.LoggingService.OnlyLogCriticalEvents)
             {
                 // If the type is a list, we already logged the parameters
@@ -1368,7 +1369,9 @@ namespace Microsoft.Build.BackEnd
                 {
                     _taskLoggingContext.LogCommentFromText(
                         MessageImportance.Low,
-                        ItemGroupLoggingHelper.TaskParameterPrefix + parameter.Name + "=" + ItemGroupLoggingHelper.GetStringFromParameterValue(parameterValue));
+                        TaskParameterFormatString,
+                        parameter.Name,
+                        ItemGroupLoggingHelper.GetStringFromParameterValue(parameterValue));
                 }
             }
 
