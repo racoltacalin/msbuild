@@ -335,8 +335,10 @@ namespace Microsoft.Build.BackEnd
             return reason;
         }
 
-        private static readonly string SkipTargetUpToDateInputs = ResourceUtilities.GetResourceString("SkipTargetUpToDateInputs");
-        private static readonly string SkipTargetUpToDateOutputs = ResourceUtilities.GetResourceString("SkipTargetUpToDateOutputs");
+        // Cache the resource strings, and since we're no longer inserting the concatenated text of all items inline,
+        // just insert an empty string to fill the {0} hole in the resource string.
+        private static readonly string SkipTargetUpToDateInputs = ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("SkipTargetUpToDateInputs", string.Empty);
+        private static readonly string SkipTargetUpToDateOutputs = ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("SkipTargetUpToDateOutputs", string.Empty);
 
         /// <summary>
         /// Extract only the unique inputs and outputs from all the inputs and outputs gathered
