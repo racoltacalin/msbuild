@@ -303,7 +303,11 @@ namespace Microsoft.Build.UnitTests.BackEnd
         /// <inheritdoc />
         public void LogCommentFromText(BuildEventContext buildEventContext, MessageImportance importance, string message, params object[] messageArgs)
         {
-            message = string.Format(message, messageArgs);
+            if (messageArgs?.Length > 0)
+            {
+                message = string.Format(message, messageArgs);
+            }
+
             _writer(message);
         }
 
