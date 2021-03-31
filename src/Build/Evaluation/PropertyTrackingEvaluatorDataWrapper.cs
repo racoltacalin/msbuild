@@ -264,6 +264,13 @@ namespace Microsoft.Build.Evaluation
                 return;
             }
 
+            if (string.Equals(property.Name, "MSBuildAllProjects", StringComparison.OrdinalIgnoreCase))
+            {
+                // There's a huge perf cost to logging this and it increases the binlog size significantly.
+                // Meanwhile the usefulness of logging this is very low.
+                return;
+            }
+
             string newValue = property.EvaluatedValue;
             string oldValue = predecessor.EvaluatedValue;
             if (newValue == oldValue)

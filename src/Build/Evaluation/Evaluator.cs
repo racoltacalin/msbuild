@@ -1319,6 +1319,13 @@ namespace Microsoft.Build.Evaluation
             string newValue = property.EvaluatedValue;
             string oldValue = predecessor?.EvaluatedValue;
 
+            if (string.Equals(property.Name, "MSBuildAllProjects", StringComparison.OrdinalIgnoreCase))
+            {
+                // There's a huge perf cost to logging this and it increases the binlog size significantly.
+                // Meanwhile the usefulness of logging this is very low.
+                return;
+            }
+
             if (newValue != oldValue)
             {
                 _evaluationLoggingContext.LogComment(
