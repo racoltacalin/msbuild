@@ -113,7 +113,22 @@ namespace Microsoft.Build.Shared
         /// <summary>
         /// Event is a ProjectEvaluationFinishedEventArgs
         /// </summary>
-        ProjectEvaluationFinishedEvent = 15
+        ProjectEvaluationFinishedEvent = 15,
+
+        /// <summary>
+        /// Event is a ProjectImportedEventArgs
+        /// </summary>
+        ProjectImportedEvent = 16,
+
+        /// <summary>
+        /// Event is a TargetSkippedEventArgs
+        /// </summary>
+        TargetSkipped = 17,
+
+        /// <summary>
+        /// Event is a TelemetryEventArgs
+        /// </summary>
+        Telemetry = 18,
     }
     #endregion
 
@@ -527,6 +542,12 @@ namespace Microsoft.Build.Shared
                     return new ProjectEvaluationStartedEventArgs();
                 case LoggingEventType.ProjectEvaluationFinishedEvent:
                     return new ProjectEvaluationFinishedEventArgs();
+                case LoggingEventType.ProjectImportedEvent:
+                    return new ProjectImportedEventArgs();
+                case LoggingEventType.TargetSkipped:
+                    return new TargetSkippedEventArgs();
+                case LoggingEventType.Telemetry:
+                    return new TelemetryEventArgs();
 #endif
                 default:
                     ErrorUtilities.VerifyThrow(false, "Should not get to the default of GetBuildEventArgFromId ID: " + _eventType);
@@ -574,6 +595,18 @@ namespace Microsoft.Build.Shared
             else if (eventType == typeof(ProjectEvaluationStartedEventArgs))
             {
                 return LoggingEventType.ProjectEvaluationStartedEvent;
+            }
+            else if (eventType == typeof(ProjectImportedEventArgs))
+            {
+                return LoggingEventType.ProjectImportedEvent;
+            }
+            else if (eventType == typeof(TargetSkippedEventArgs))
+            {
+                return LoggingEventType.TargetSkipped;
+            }
+            else if (eventType == typeof(TelemetryEventArgs))
+            {
+                return LoggingEventType.Telemetry;
             }
 #endif
             else if (eventType == typeof(TargetStartedEventArgs))

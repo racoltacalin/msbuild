@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.IO;
+using Microsoft.Build.Shared;
 
 namespace Microsoft.Build.Framework
 {
@@ -68,6 +70,32 @@ namespace Microsoft.Build.Framework
         public string Condition { get; set; }
 
         public string EvaluatedCondition { get; set; }
+
+        internal override void WriteToStream(BinaryWriter writer)
+        {
+            base.WriteToStream(writer);
+
+            writer.WriteOptionalString(TargetName);
+            writer.WriteOptionalString(ParentTarget);
+            writer.WriteOptionalString(TargetFile);
+            writer.WriteOptionalString(Condition);
+            writer.WriteOptionalString(EvaluatedCondition);
+            writer.Write7BitEncodedInt((int)BuildReason);
+            writer.Write(OriginallySucceeded);
+        }
+
+        internal override void CreateFromStream(BinaryReader reader, int version)
+        {
+            base.CreateFromStream(reader, version);
+
+            TargetName = reader.ReadOptionalString();
+            ParentTarget = reader.ReadOptionalString();
+            TargetFile = reader.ReadOptionalString();
+            Condition = reader.ReadOptionalString();
+            EvaluatedCondition = reader.ReadOptionalString();
+            BuildReason = (TargetBuiltReason)reader.Read7BitEncodedInt();
+            OriginallySucceeded = reader.ReadBoolean();
+        }
 
         public override string Message
         {

@@ -139,6 +139,7 @@ namespace Microsoft.Build.Logging
 Base types and inheritance ("EventArgs" suffix omitted):
 
 Build
+    Telemetry
     LazyFormattedBuild
         BuildMessage
             CriticalBuildMessage
