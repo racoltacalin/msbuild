@@ -69,11 +69,11 @@ namespace Microsoft.Build.Framework
         {
             get
             {
-                if (RawMessage != null)
+                if (RawMessage == null)
                 {
                     lock (locker)
                     {
-                        if (RawMessage != null)
+                        if (RawMessage == null)
                         {
                             RawMessage = FormatResourceStringIgnoreCodeAndKeyword("PropertyReassignment", PropertyName, NewValue, PreviousValue, Location);
                         }
