@@ -1867,7 +1867,7 @@ namespace Microsoft.Build.Tasks
         {
             foreach (string scatterFile in reference.GetScatterFiles())
             {
-                Log.LogMessageFromResources(importance, Strings.FoundScatterFile, scatterFile);
+                Log.LogMessage(importance, Strings.FoundScatterFile, scatterFile);
             }
         }
 
