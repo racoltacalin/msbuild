@@ -3,11 +3,6 @@
 namespace Microsoft.Build.Framework
 {
     public delegate void AnyEventHandler(object sender, Microsoft.Build.Framework.BuildEventArgs e);
-    public partial class BuildEngineOptions
-    {
-        public BuildEngineOptions() { }
-        public bool LogTaskInputs { get { throw null; } set { } }
-    }
     [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public partial struct BuildEngineResult
     {
@@ -222,7 +217,6 @@ namespace Microsoft.Build.Framework
     }
     public partial interface IBuildEngine8 : Microsoft.Build.Framework.IBuildEngine, Microsoft.Build.Framework.IBuildEngine2, Microsoft.Build.Framework.IBuildEngine3, Microsoft.Build.Framework.IBuildEngine4, Microsoft.Build.Framework.IBuildEngine5, Microsoft.Build.Framework.IBuildEngine6, Microsoft.Build.Framework.IBuildEngine7
     {
-        Microsoft.Build.Framework.BuildEngineOptions Options { get; }
         bool ShouldTreatWarningAsError(string warningCode);
     }
     public partial interface ICancelableTask : Microsoft.Build.Framework.ITask

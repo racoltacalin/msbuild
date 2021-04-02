@@ -104,8 +104,6 @@ namespace Microsoft.Build.BackEnd
         /// </summary>
         private int _yieldThreadId = -1;
 
-        public BuildEngineOptions Options { get; } = new BuildEngineOptions();
-
         /// <summary>
         /// Constructor
         /// </summary>

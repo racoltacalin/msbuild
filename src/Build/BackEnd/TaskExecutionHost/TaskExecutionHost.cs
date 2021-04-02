@@ -314,11 +314,6 @@ namespace Microsoft.Build.BackEnd
             TaskInstance.BuildEngine = _buildEngine;
             TaskInstance.HostObject = _taskHost;
 
-            if (_buildEngine is IBuildEngine8 engine8)
-            {
-                engine8.Options.LogTaskInputs = true;
-            }
-
             return true;
         }
 
