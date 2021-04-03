@@ -1034,6 +1034,11 @@ namespace Microsoft.Build.Logging
                         }
                     }
                 }
+
+                if (list.Count == 0)
+                {
+                    list = null;
+                }
             }
             else
             {

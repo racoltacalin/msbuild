@@ -1454,6 +1454,21 @@ Done building target ""Build"" in project ""build.proj"".".Replace("\r\n", "\n")
         {
         }
 
+        /// <summary>
+        /// Empty impl
+        /// </summary>
+        int IRequestBuilderCallback.RequestCores(object monitorLockObject, int requestedCores, bool waitForCores)
+        {
+            return 0;
+        }
+
+        /// <summary>
+        /// Empty impl
+        /// </summary>
+        void IRequestBuilderCallback.ReleaseCores(int coresToRelease)
+        {
+        }
+
         #endregion
 
         /// <summary>
