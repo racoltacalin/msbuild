@@ -335,11 +335,6 @@ namespace Microsoft.Build.BackEnd
             return reason;
         }
 
-        // Cache the resource strings, and since we're no longer inserting the concatenated text of all items inline,
-        // just insert an empty string to fill the {0} hole in the resource string.
-        private static readonly string SkipTargetUpToDateInputs = ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("SkipTargetUpToDateInputs", string.Empty);
-        private static readonly string SkipTargetUpToDateOutputs = ResourceUtilities.FormatResourceStringIgnoreCodeAndKeyword("SkipTargetUpToDateOutputs", string.Empty);
-
         /// <summary>
         /// Extract only the unique inputs and outputs from all the inputs and outputs gathered
         /// during depedency analysis
@@ -349,7 +344,7 @@ namespace Microsoft.Build.BackEnd
             var args = ItemGroupLoggingHelper.CreateTaskParameterEventArgs(
                 _buildEventContext,
                 TaskParameterMessageKind.SkippedTargetInputs,
-                SkipTargetUpToDateInputs,
+                itemType: null,
                 _uniqueTargetInputs.Keys.ToArray(),
                 logItemMetadata: false,
                 DateTime.UtcNow);
@@ -358,7 +353,7 @@ namespace Microsoft.Build.BackEnd
             args = ItemGroupLoggingHelper.CreateTaskParameterEventArgs(
                 _buildEventContext,
                 TaskParameterMessageKind.SkippedTargetOutputs,
-                SkipTargetUpToDateOutputs,
+                itemType: null,
                 _uniqueTargetOutputs.Keys.ToArray(),
                 logItemMetadata: false,
                 DateTime.UtcNow);
