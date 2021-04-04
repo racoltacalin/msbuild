@@ -126,15 +126,15 @@ namespace Microsoft.Build.UnitTests
             CreatedFiles = Helpers.CreateFilesInDirectory(TestRoot, files);
         }
 
-        internal MockLogger BuildProjectExpectFailure(IDictionary<string, string> globalProperties = null, string toolsVersion = null)
+        internal MockLogger BuildProjectExpectFailure(IDictionary<string, string> globalProperties = null, string toolsVersion = null, bool validateLoggerRoundtrip = true)
         {
-            BuildProject(globalProperties, toolsVersion, out MockLogger logger).ShouldBeFalse();
+            BuildProject(globalProperties, toolsVersion, out MockLogger logger, validateLoggerRoundtrip).ShouldBeFalse();
             return logger;
         }
 
-        internal MockLogger BuildProjectExpectSuccess(IDictionary<string, string> globalProperties = null, string toolsVersion = null)
+        internal MockLogger BuildProjectExpectSuccess(IDictionary<string, string> globalProperties = null, string toolsVersion = null, bool validateLoggerRoundtrip = true)
         {
-            BuildProject(globalProperties, toolsVersion, out MockLogger logger).ShouldBeTrue();
+            BuildProject(globalProperties, toolsVersion, out MockLogger logger, validateLoggerRoundtrip).ShouldBeTrue();
             return logger;
         }
 
