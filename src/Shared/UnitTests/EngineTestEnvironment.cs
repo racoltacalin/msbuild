@@ -158,7 +158,7 @@ namespace Microsoft.Build.UnitTests
             return result;
         }
 
-        private (ILogger, Func<string>) GetMockLogger()
+        private (ILogger logger, Func<string> textGetter) GetMockLogger()
         {
             var logger = new MockLogger();
             return (logger, () => logger.FullLog);
